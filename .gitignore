@@ -10,3 +10,11 @@ build/
 
 # Système
 .DS_Store
+
+#prisma agent skills
+.agents/
+.claude/
+.windsurf/
+.cursor/
+.devin/
+.skills-lock.json
