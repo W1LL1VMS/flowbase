@@ -43,4 +43,49 @@ async function getUsers(req, res) {
   }
 }
 
-module.exports = { createUser, getUsers };
+async function updateUser(req, res) {
+  try {
+    const { id } = req.params;
+    const { email, password, name } = req.body;
+
+    const data = { email, name };
+
+    if (password) {
+      data.password = await bcrypt.hash(password, 10);
+    }
+
+    const user = await prisma.user.update({
+      where: { id },
+      data
+    });
+
+    const { password: _, ...userWithoutPassword } = user;
+    res.json(userWithoutPassword);
+
+  } catch (error) {
+    if (error.code === 'P2025') {
+      return res.status(404).json({ error: 'Utilisateur introuvable' });
+    }
+    if (error.code === 'P2002') {
+      return res.status(409).json({ error: 'Cet email est déjà utilisé' });
+    }
+    console.error(error);
+    res.status(500).json({ error: error.message });
+  }
+}
+
+async function deleteUser(req, res) {
+  try {
+    const { id } = req.params;
+    await prisma.user.delete({ where: { id } });
+    res.status(204).send();
+  } catch (error) {
+    if (error.code === 'P2025') {
+      return res.status(404).json({ error: 'Utilisateur introuvable' });
+    }
+    console.error(error);
+    res.status(500).json({ error: error.message });
+  }
+}
+
+module.exports = { createUser, getUsers, updateUser, deleteUser };
